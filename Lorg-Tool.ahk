@@ -1968,7 +1968,7 @@ StartPlacementSequence:
 
     SetTimer, StartPlacementSequence, Off
 
-PlcLog("sequence placement demarree ; placementEnabled=" . placementEnabled)
+PlcLog("sequence placement demarree")
 
 ; ----- Détection du placement (uniquement si Placement = AUTO) -----
 
