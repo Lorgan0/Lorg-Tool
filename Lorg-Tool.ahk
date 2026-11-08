@@ -1968,7 +1968,7 @@ StartPlacementSequence:
 
     SetTimer, StartPlacementSequence, Off
 
-PlcLog("sequence placement demarree")
+; Diagnostic de demarrage retire pour eviter le probleme de guillemets
 
 ; ----- Détection du placement (uniquement si Placement = AUTO) -----
 
