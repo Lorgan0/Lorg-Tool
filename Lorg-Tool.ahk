@@ -49,8 +49,9 @@ endFightDelay := 100
 endFightBlockAfterStart := 10000  ; ms : après le début d'un combat (ready.png / join des mules), AUCUN Échap EndFight
 
 ; ---------- Attente de ready.png après le clic droit ----------
-readyScanInterval := 50    ; vérifie ready.png toutes les 100 ms
-readyTimeout      := 100   ; abandonne après 5 s si ready.png n'apparaît pas
+readyScanInterval := 50      ; vérifie ready.png toutes les 50 ms
+readyTimeout      := 100     ; délai existant conservé pour les autres mécanismes
+readyImageTimeout := 5000    ; laisse jusqu'à 5 secondes à ready.png pour apparaître
 
 ; ---------- Délais WHEEL ----------
 wheelClickDelay := 25
@@ -2028,7 +2029,7 @@ CheckReady:
     ; Une autre routine est en cours : attendre, sans bloquer indéfiniment.
     if (groupFollow || groupEndFight || groupImage || groupClickImage || groupWheel)
     {
-        if (readySequenceStart && A_TickCount - readySequenceStart > readyTimeout)
+        if (readySequenceStart && A_TickCount - readySequenceStart > readyImageTimeout)
         {
             SetTimer, CheckReady, Off
             SetTimer, StartPlacementSequence, Off
@@ -2047,7 +2048,7 @@ CheckReady:
     ; même si le délai de 100 ms vient juste d'être dépassé.
     if (!IsReadyVisible())
     {
-        if (readySequenceStart && A_TickCount - readySequenceStart > readyTimeout)
+        if (readySequenceStart && A_TickCount - readySequenceStart > readyImageTimeout)
         {
             SetTimer, CheckReady, Off
             SetTimer, StartPlacementSequence, Off
