@@ -1908,19 +1908,33 @@ return
 ~RButton::
 
     if (!scriptEnabled)
+    {
+        PlcLog("clic droit ignore : script desactive")
         return
+    }
 
     ; Les autres routines restent prioritaires, mais Switch (groupImage)
     ; ne doit plus faire ignorer ce clic droit de placement.
     if (groupFollow || groupEndFight || groupClickImage)
+    {
+        if (groupFollow)
+            PlcLog("clic droit ignore : Grouper (groupFollow) deja en cours")
+        else if (groupEndFight)
+            PlcLog("clic droit ignore : EndFight deja en cours")
+        else if (groupClickImage)
+            PlcLog("clic droit ignore : detection/clic image deja en cours")
         return
+    }
 
     ; On mémorise la position de la souris pour la routine.
     MouseGetPos, followX, followY
 
     ; Une séquence placement/ready est déjà en cours.
     if (waitingReady)
+    {
+        PlcLog("clic droit ignore : sequence placement/ready deja en cours")
         return
+    }
 
     ; Verrouiller immédiatement Switch, avant même la recherche de couleur.
     waitingReady := true
@@ -1930,6 +1944,7 @@ return
     ; via un timer (ne pas attendre dans cette routine, car AHK la suspendrait).
     if (groupImage)
     {
+        PlcLog("clic droit recu : attente de la fin de Switch avant le placement")
         SetTimer, StartPlacementSequence, 20
         return
     }
@@ -1940,7 +1955,10 @@ return
 ; Lance le placement une fois que Switch a fini son éventuel changement de fenêtre.
 StartPlacementSequence:
     if (!waitingReady)
+    {
+        PlcLog("demarrage placement ignore : waitingReady est deja a false")
         return
+    }
 
     if (groupImage)
     {
@@ -1949,6 +1967,8 @@ StartPlacementSequence:
     }
 
     SetTimer, StartPlacementSequence, Off
+
+PlcLog("sequence placement demarree ; placementEnabled=" placementEnabled)
 
 ; ----- Détection du placement (uniquement si Placement = AUTO) -----
 
