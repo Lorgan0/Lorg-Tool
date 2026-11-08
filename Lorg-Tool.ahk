@@ -2014,29 +2014,49 @@ return
 ; ---------------------------------------------------------------
 CheckReady:
 
-    ; Délai dépassé (ou script coupé) : on abandonne
-    ; Timeout absolu : ne pas remettre le chrono à zéro si une autre
-    ; routine reste bloquée, sinon le clic droit peut être verrouillé indéfiniment.
-    if (!scriptEnabled || (readySequenceStart && A_TickCount - readySequenceStart > readyTimeout))
+    ; Si le script est coupé, arrêter immédiatement la séquence.
+    if (!scriptEnabled)
     {
         SetTimer, CheckReady, Off
         SetTimer, StartPlacementSequence, Off
         waitingReady := false
         readySequenceStart := 0
-        PlcLog("securite : sequence placement/ready abandonnee (timeout)")
+        PlcLog("securite : sequence arretee car script desactive")
         return
     }
 
-    ; Une autre routine est en cours : on réessaie au prochain passage
-    ; (et on remet le chrono à zéro pour ne pas abandonner pendant ce temps)
+    ; Une autre routine est en cours : attendre, sans bloquer indéfiniment.
     if (groupFollow || groupEndFight || groupImage || groupClickImage || groupWheel)
     {
+        if (readySequenceStart && A_TickCount - readySequenceStart > readyTimeout)
+        {
+            SetTimer, CheckReady, Off
+            SetTimer, StartPlacementSequence, Off
+            waitingReady := false
+            readySequenceStart := 0
+            PlcLog("securite : sequence placement/ready abandonnee (timeout pendant une autre routine)")
+            return
+        }
+
         waitStart := A_TickCount
         return
     }
 
+    ; IMPORTANT : rechercher ready.png AVANT de vérifier le timeout.
+    ; Si le bouton est déjà visible au premier passage du timer, on poursuit
+    ; même si le délai de 100 ms vient juste d'être dépassé.
     if (!IsReadyVisible())
+    {
+        if (readySequenceStart && A_TickCount - readySequenceStart > readyTimeout)
+        {
+            SetTimer, CheckReady, Off
+            SetTimer, StartPlacementSequence, Off
+            waitingReady := false
+            readySequenceStart := 0
+            PlcLog("securite : sequence placement/ready abandonnee (timeout)")
+        }
         return
+    }
 
     ; ----- ready.png détecté : routine complète -----
     fightStartTick := A_TickCount   ; début de combat : bloque Pierres un moment
