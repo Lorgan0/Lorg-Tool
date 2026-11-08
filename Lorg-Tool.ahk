@@ -1733,7 +1733,7 @@ return
 ; ---------------------------------------------------------------
 CheckClickImage:
 
-    if (!scriptEnabled || !autoJoinFight || groupFollow || groupImage || groupEndFight || groupClickImage)
+    if (!scriptEnabled || !autoJoinFight || waitingReady || groupFollow || groupImage || groupEndFight || groupClickImage)
         return
 
     groupClickImage := true
@@ -1914,16 +1914,15 @@ return
         return
     }
 
-    ; Les autres routines restent prioritaires, mais Switch (groupImage)
-    ; ne doit plus faire ignorer ce clic droit de placement.
-    if (groupFollow || groupEndFight || groupClickImage)
+    ; Grouper et EndFight restent prioritaires.
+    ; AutoJoinFight ne doit plus faire perdre le clic de placement :
+    ; on mémorise la demande et on attend la fin de la routine.
+    if (groupFollow || groupEndFight)
     {
         if (groupFollow)
             PlcLog("clic droit ignore : Grouper (groupFollow) deja en cours")
         else if (groupEndFight)
             PlcLog("clic droit ignore : EndFight deja en cours")
-        else if (groupClickImage)
-            PlcLog("clic droit ignore : detection/clic image deja en cours")
         return
     }
 
@@ -1943,9 +1942,12 @@ return
 
     ; Si Switch était déjà en train de changer de fenêtre, attendre sa fin
     ; via un timer (ne pas attendre dans cette routine, car AHK la suspendrait).
-    if (groupImage)
+    if (groupImage || groupClickImage)
     {
-        PlcLog("clic droit recu : attente de la fin de Switch avant le placement")
+        if (groupImage)
+            PlcLog("clic droit recu : attente de la fin de Switch avant le placement")
+        else
+            PlcLog("clic droit recu : attente de la fin d'AutoJoinFight avant le placement")
         SetTimer, StartPlacementSequence, 20
         return
     }
@@ -1961,7 +1963,7 @@ StartPlacementSequence:
         return
     }
 
-    if (groupImage)
+    if (groupImage || groupClickImage)
     {
         SetTimer, StartPlacementSequence, 20
         return
