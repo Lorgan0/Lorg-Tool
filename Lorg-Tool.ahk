@@ -479,7 +479,7 @@ PlacementButtonText()
 DetectPlacement(mainID)
 {
     global placeX, placeY, placementTeamColor, placementColorTolerance, placementColorBox
-    global placementDetectTimeout, placementDetectInterval
+    global placementDetectTimeout, placementDetectInterval, placementFocusDelay
 	
 
     ; Le PixelSearch lit l'écran.
@@ -545,12 +545,14 @@ DetectPlacement(mainID)
                 continue
             }
 
-            x1 := cx - placementColorBox
-            y1 := cy - placementColorBox
-            x2 := cx + placementColorBox
-            y2 := cy + placementColorBox
+            ; Recherche dans toute la zone autour du point mémorisé.
+            ; La zone est limitée aux bords de la fenêtre Malyna.
+            x1 := Max(wx, cx - placementColorBox)
+            y1 := Max(wy, cy - placementColorBox)
+            x2 := Min(wx + ww - 1, cx + placementColorBox)
+            y2 := Min(wy + wh - 1, cy + placementColorBox)
 
-            PixelSearch, foundPX, foundPY, %cx%, %cy%, %cx%, %cy%, %placementTeamColor%, %placementColorTolerance%, RGB
+            PixelSearch, foundPX, foundPY, %x1%, %y1%, %x2%, %y2%, %placementTeamColor%, %placementColorTolerance%, Fast RGB
 
             if (ErrorLevel = 0)
             {
@@ -567,8 +569,9 @@ DetectPlacement(mainID)
             }
         }
 
-       if (A_TickCount - detStart >= 15000)
-    break
+        ; Respecte le délai maximal défini dans la configuration.
+        if (A_TickCount - detStart >= placementDetectTimeout)
+            break
 
         Sleep, %placementDetectInterval%
     }
